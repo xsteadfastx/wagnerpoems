@@ -1,0 +1,9 @@
+PyHyphen==2.0.5
+Unidecode==0.04.17
+argparse==1.2.1
+beautifulsoup4==4.3.2
+birdy==0.2
+oauthlib==0.7.2
+requests==2.5.1
+requests-oauthlib==0.4.2
+wsgiref==0.1.2
