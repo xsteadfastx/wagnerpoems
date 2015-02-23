@@ -58,7 +58,7 @@ def word_tuple(word_list):
 
 
 def haiku_elements(words, syllcount):
-    word_length = [1, 2, 3, 4, 5]
+    word_length = list(range(1, 5))
     random.shuffle(word_length)
     random.shuffle(words)
     for length in word_length:
@@ -66,7 +66,7 @@ def haiku_elements(words, syllcount):
 
         for perm in perms:
             if sum([i[1] for i in perm]) == syllcount:
-                return [i[0] for i in perm]
+                return [i[0].lower() for i in perm]
 
 
 def create_haiku():
@@ -74,11 +74,11 @@ def create_haiku():
     words = word_tuple(post.split())
 
     haiku = []
-    haiku.extend(haiku_elements(words, 5))
-    haiku.extend(haiku_elements(words, 7))
-    haiku.extend(haiku_elements(words, 5))
+    haiku.append(' '.join(haiku_elements(words, 5)))
+    haiku.append(' '.join(haiku_elements(words, 7)))
+    haiku.append(' '.join(haiku_elements(words, 5)))
 
-    return ' '.join(haiku)
+    return '\n'.join(haiku)
 
 
 def send_tweet(tweet):
