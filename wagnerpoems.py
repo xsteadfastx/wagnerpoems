@@ -1,9 +1,9 @@
 from bs4 import BeautifulSoup
-from urlparse import urljoin
-from unidecode import unidecode
+from urllib.parse import urljoin
 from hyphen import Hyphenator
-from random import choice
 from birdy.twitter import UserClient
+from itertools import permutations
+from random import choice
 import re
 import requests
 
@@ -32,7 +32,7 @@ def get_daily_post():
 
     post = soup.find_all('div', class_='txt clearfix')[0].find_all('p')
 
-    post = [match_alpha_num.sub(' ', unidecode(i.text)).strip()
+    post = [match_alpha_num.sub(' ', i.text).strip()
             for i in post
             if not re.search(match_url, i.text)][:-4]
 
@@ -41,45 +41,40 @@ def get_daily_post():
     return post
 
 
-def word_count_dict():
-    post = get_daily_post()
+def syllable_count(word):
     hyph = Hyphenator('de_DE')
-    count_dict = {}
-    words = post.split(' ')
-    for word in words:
-        count = len(hyph.syllables(unicode(word)))
-        if count not in count_dict:
-            count_dict[count] = []
-        count_dict[count].append(word)
-
-    return count_dict
+    return len(hyph.syllables(word))
 
 
-def haiku_elements(count_dict, count):
-    while True:
-        random_choice = [choice(count_dict.keys()), choice(count_dict.keys())]
-        if sum(random_choice) == count:
-            return random_choice
+def word_tuple(word_list):
+    tuple_list = []
+    for word in word_list:
+        syll = syllable_count(word)
+        if syll == 0:
+            syll = 1
+        tuple_list.append((word, syll))
+
+    return tuple_list
+
+
+def haiku_elements(syllcount, perms):
+    possibles = []
+    for perm in perms:
+        if perm[0][1] + perm[1][1] == syllcount:
+            possibles.append('{} {}'.format(perm[0][0],
+                                            perm[1][0]))
+
+    return choice(possibles)
 
 
 def create_haiku():
-    count_dict = word_count_dict()
+    post = get_daily_post().split()
+    perms = list(permutations(word_tuple(post), r=2))
+
     haiku = []
-
-    elements = haiku_elements(count_dict, 5)
-    haiku.append('{} {}'.format(
-        choice(count_dict[elements[0]]),
-        choice(count_dict[elements[1]])))
-
-    elements = haiku_elements(count_dict, 7)
-    haiku.append('{} {}'.format(
-        choice(count_dict[elements[0]]),
-        choice(count_dict[elements[1]])))
-    elements = haiku_elements(count_dict, 5)
-
-    haiku.append('{} {}'.format(
-        choice(count_dict[elements[0]]),
-        choice(count_dict[elements[1]])))
+    haiku.append(haiku_elements(5, perms))
+    haiku.append(haiku_elements(7, perms))
+    haiku.append(haiku_elements(5, perms))
 
     return ' '.join(haiku)
 
