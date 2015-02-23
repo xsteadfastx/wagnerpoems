@@ -3,9 +3,9 @@ from urllib.parse import urljoin
 from hyphen import Hyphenator
 from birdy.twitter import UserClient
 from itertools import permutations
-from random import choice
 import re
 import requests
+import random
 
 from config import *
 
@@ -57,24 +57,26 @@ def word_tuple(word_list):
     return tuple_list
 
 
-def haiku_elements(syllcount, perms):
-    possibles = []
-    for perm in perms:
-        if perm[0][1] + perm[1][1] == syllcount:
-            possibles.append('{} {}'.format(perm[0][0],
-                                            perm[1][0]))
+def haiku_elements(words, syllcount):
+    word_length = [1, 2, 3, 4, 5]
+    random.shuffle(word_length)
+    random.shuffle(words)
+    for length in word_length:
+        perms = permutations(words, r=length)
 
-    return choice(possibles)
+        for perm in perms:
+            if sum([i[1] for i in perm]) == syllcount:
+                return [i[0] for i in perm]
 
 
 def create_haiku():
-    post = get_daily_post().split()
-    perms = list(permutations(word_tuple(post), r=2))
+    post = get_daily_post()
+    words = word_tuple(post.split())
 
     haiku = []
-    haiku.append(haiku_elements(5, perms))
-    haiku.append(haiku_elements(7, perms))
-    haiku.append(haiku_elements(5, perms))
+    haiku.extend(haiku_elements(words, 5))
+    haiku.extend(haiku_elements(words, 7))
+    haiku.extend(haiku_elements(words, 5))
 
     return ' '.join(haiku)
 
